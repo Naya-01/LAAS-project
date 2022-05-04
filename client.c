@@ -53,8 +53,8 @@ int main(int argc, char **argv)
     printf("Voici vos informations : \n");
     printf("Votre numéro de compte : %d\nTout les virements récurrent seront éxécutés toutes les %d secondes.", numeroCompte, delay);
     char ligne[256];
-
-    if (virementManuel)
+    // Boucle pour lire le terminal
+    if (virementManuel) // faut check le premier caract == '+'
     {
         structVirement virement;
         virement.montant = 0;         // A completer
