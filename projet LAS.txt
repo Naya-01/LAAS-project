@@ -1,0 +1,62 @@
+PROJET LAS GROUPE 22
+
+---> Partie du serveur <---
+
+/!\ Il faut protéger l'accès à l'aide d'une sémaphore en lecture et écriture
+Solde (livre de comptes) : mémoire partagée entre les 3 programmes du serveur central
+| -> il sera composé d'un tableau de 1000 entiers ( l'indice représente le numéro de compte)
+
+
+- Programme de dépôts et de retraits : pdr.c <numéro de compte> <montant>
+montant positif -> dépôt | montant négatif -> retrait
+(c'est un DAB)
+
+Programme de maintenance : maint.c <valeur du type> <options>
+| type = 1 -> créer les ressources partagées relatives au livre de comptes (sémaphore et mémoire partagée)
+| type = 2 -> détruit les ressources partagées
+| type = 3 -> réserve de façon exclusive le livre de compte partagé pour une durée <option> en seconde (on peut utiliser sleep)
+
+
+---> POINT D'ACCES DU CLIENT <---
+
+- Serveur de virements : il utilisera le pdr pour les virements (à vérifier) -> server.c <port Server>
+=> étapes
+| Ouvrir TCP 
+| Recevoir les informations sous format <numéro emetteur> <numéro bénéficiaire> <montant> 
+| Fermer TCP
+(Le virement se fait dans le même fichier en utilisant la mémoire partagée)
+
+/!\ à utiliser le poll car on peut avoir bcp de clients
+
+---> Partie du client <---
+
+client.c <adr> <port> <num> <delay>
+<adr> = adresse IP du serv
+<port> = port du serv central
+<num> = numéro du compte
+<delay> = temps entre deux virement récurrent
+
+Il est connecté par un pipe au programme de virement récurrent
+
+Minuterie : Sera créer par client.c
+
+Virement récurrent : Sera créer par client.c
+
+Les deux enfants seront connectés par un PIPE
+
+Le père et le minuteur enverront une structure "virement" par pipe, si le numéro de compte est < 0 c'est le minuteur qui envoi son signal, sinon il faut créer l'ordre de virement
+
+Pas besoin de sémaphore d'écriture sur le pipe
+
+
+Le père présente à l’utilisateur final un prompt permettant d’exécuter trois types de
+commandes :
+1. Une commande “+ n2 somme” (où n2 et somme sont des entiers naturels) qui permet
+d’effectuer un virement d’un montant équivalent à somme entre le compte “num” du
+client et le compte “n2”. Le nouveau solde du compte émetteur (“num”) est affiché.
+2. Une commande “* n2 somme” (où n2 et somme sont des entiers naturels) qui
+transmet au fils un nouveau virement récurrent d’un montant équivalent à somme entre
+le compte “num” du client et le compte “n2”. Ce virement récurrent est émis toutes
+les “delay” secondes par le fils. Le nouveau solde du compte émetteur (“num”) n’est
+pas affiché.
+3. Une commande “q” qui déconnecte le client et libère les ressources du client.
