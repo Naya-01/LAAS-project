@@ -8,7 +8,7 @@
 #include <string.h>
 #include "utils_v1.h"
 
-
+#define NBR_CLIENTS 1000
 #define SEM_KEY 248
 #define KEY 369
 #define PERM 0666
@@ -18,21 +18,23 @@ int main(int argc, char const *argv[])
 {
 
 	if(argc!=3){
-			perror("Nombre de parametre invalide !");
-		}
+		perror("Nombre de parametre invalide !");
+		exit(EXIT_FAILURE);
+	}
+	
 	int type = atoi(argv[1]);
 
 	if(type == 1){
 
 	// CREATE SHARED MEMORY
-		sshmget(KEY, sizeof(int), IPC_CREAT | PERM);
+		sshmget(KEY, NBR_CLIENTS * sizeof(int), IPC_CREAT | PERM);
     // CREATE SEMAPHORE 
 		sem_create(SEM_KEY, 1, PERM, 1);
 
 	}else if(type == 2){
 
 		int sem_id = sem_get(SEM_KEY, 1);
-		int shm_id = sshmget(KEY, sizeof(int), 0);
+		int shm_id = sshmget(KEY, NBR_CLIENTS * sizeof(int), 0);
 
 		sshmdelete(shm_id);
 		sem_delete(sem_id);
@@ -50,12 +52,12 @@ int main(int argc, char const *argv[])
 
 		sem_down0(sem_id);
 		sleep(opt);
-		sem_up(sem_id);
+		sem_up0(sem_id);
 
 
 
 	}
 
 	
-
+	exit(EXIT_SUCCESS);
 }

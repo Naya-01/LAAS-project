@@ -9,42 +9,46 @@
 #define DATA_KEY 369
 #define SEM_KEY 248
 #define NBR_CLIENTS 1000
-#define PERM 0666
 
 int main (int argc, char *argv[]) {
-  // GET SHARED MEMORY 
   if(argc != 3){
     perror("Il faut exactements 2 arguments (NumCompte | Montant)");
+    exit(EXIT_FAILURE);
   }
-  int numeroDeCompte = argv[1];
-  int montant = argv[2];
+  int numeroDeCompte = atoi(argv[1]);
+  int montant = atoi(argv[2]);
 
-  if(numeroDeCompte < 0 || numeroDeCompte > 1000){
+  if(numeroDeCompte < 0 || numeroDeCompte >= 1000){
     perror("Numéro de compte invalide");
+    exit(EXIT_FAILURE);
   }
 
-  int shm_id = sshmget(DATA_KEY, NBR_CLIENTS * sizeof(int), 0);
-  int* ptrLDC = sshmat(shm_id); // pointeur vers livre de compte
-  int sem_id = sem_get(KEY_WRITE, 1); // semaphore
+  // GET SHARED MEMORY 
+  int shm_id = sshmget(DATA_KEY,NBR_CLIENTS * sizeof(int), 0);
+  // pointeur vers livre de compte
+  int* ptrLDC = sshmat(shm_id); 
+  // semaphore
+  int sem_id = sem_get(SEM_KEY, 1); 
   
-  printf("Ancien solde : %d \n",ptrLDC[numeroDeCompte]);
+  printf("Ancien solde : %d €\n",ptrLDC[numeroDeCompte]);
 
   printf("Opération en cours...\n");
-  
+
   sem_down0(sem_id);
 
   // ecrire mémoire partagée
   if(montant < 0){
-    printf("Retrait de %d \n",montant);
-    ptrLDC[numeroDeCompte] = ptrLDC[numeroDeCompte] - montant;
+    printf("Retrait de %d €\n",montant*-1);
   }else{
-    printf("Dépôt de %d \n",montant);
-    ptrLDC[numeroDeCompte] = ptrLDC[numeroDeCompte] + montant;
+    printf("Dépôt de %d €\n",montant);
   }
+
+  ptrLDC[numeroDeCompte] = ptrLDC[numeroDeCompte] + montant;
 
   sem_up0(sem_id);
   
-  printf("Nouveau solde : %d \n",ptrLDC[numeroDeCompte]);
+  printf("Nouveau solde : %d €\n",ptrLDC[numeroDeCompte]);
   
   sshmdt(ptrLDC);
+  exit(EXIT_SUCCESS);
 }
