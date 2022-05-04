@@ -16,14 +16,18 @@
 
 int main(int argc, char const *argv[])
 {
+
+	if(argc!=3){
+			perror("Nombre de parametre invalide !");
+		}
 	int type = atoi(argv[1]);
 
 	if(type == 1){
 
 	// CREATE SHARED MEMORY
-		int shm_id = sshmget(KEY, sizeof(int), IPC_CREAT | PERM);
+		sshmget(KEY, sizeof(int), IPC_CREAT | PERM);
     // CREATE SEMAPHORE 
-		int sem_id = sem_create(SEM_KEY, 1, PERM, 1);
+		sem_create(SEM_KEY, 1, PERM, 1);
 
 	}else if(type == 2){
 
@@ -35,10 +39,13 @@ int main(int argc, char const *argv[])
 
 	} else if (type == 3){
 
+		if(argc!=3){
+			perror("Nombre de parametre invalide !");
+		}
+
 		int opt = atoi(argv[2]);
 
 		int sem_id = sem_get(SEM_KEY, 1);
-		int shm_id = sshmget(KEY, sizeof(int), 0);
 
 
 		sem_down0(sem_id);
