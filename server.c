@@ -84,5 +84,6 @@ int main(int argc, char const *argv[])
         swrite(newsockfd, &ptrLDC[virement.numEmetteur], sizeof(int));
     }
 
+    sclose(sockfd);
     exit(EXIT_SUCCESS);
 }
