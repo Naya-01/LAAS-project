@@ -48,35 +48,49 @@ int main(int argc, char **argv)
     pid_t pidMinuterie = fork_and_run0(&minuterieHandler);
     pid_t pidVR = fork_and_run0(&virementRecurrentHandler);
 
-    /* retrieve player name */
     printf("Bienvenue sur le terminal de votre compte bancaire !\n");
     printf("Voici vos informations : \n");
     printf("Votre numéro de compte : %d\nTout les virements récurrent seront éxécutés toutes les %d secondes.", numeroCompte, delay);
     char ligne[256];
     // Boucle pour lire le terminal
-    if (virementManuel) // faut check le premier caract == '+'
+    while (1)
     {
-        structVirement virement;
-        virement.montant = 0;         // A completer
-        virement.numBeneficiaire = 0; // A completer
+        int length = readLimitedLine(ligne, 256);
+        if (ligne[0] == '+') // faut check le premier caract == '+'
+        {
+            char delim[] = " ";
+            char *ptr = strtok(ligne,)
+            structVirement virement;
+            virement.montant = 0;         // A completer
+            virement.numBeneficiaire = 0; // A completer
+            virement.numEmetteur = numeroCompte;
 
-        int sockfd = initSocketClient(ip, port);
-        swrite(sockfd, &virement, sizeof(virement));
+            int sockfd = initSocketClient(ip, port);
+            swrite(sockfd, &virement, sizeof(virement));
 
-        /* wait server response */
-        int solde;
-        sread(sockfd, &solde, sizeof(int));
-        printf("Solde restant : %d", solde);
+            /* wait server response */
+            int solde;
+            sread(sockfd, &solde, sizeof(int));
+            printf("Solde restant : %d", solde);
 
-        sclose(sockfd);
-    }
-    else if (virementRecurrent)
-    {
-    }
-    else
-    {
-        // quit
-        exit(EXIT_SUCCESS);
+            sclose(sockfd);
+        }
+        else if (ligne[0] == '*')
+        {
+            structVirement virement;
+            virement.montant = 0;         // A completer
+            virement.numBeneficiaire = 0; // A completer
+            virement.numEmetteur = numeroCompte;
+        }
+        else if (ligne[0] == 'q')
+        {
+            // quit
+            exit(EXIT_SUCCESS);
+        }
+        else
+        {
+            printf("Commande non reconnue !\n");
+        }
     }
     return 0;
 }

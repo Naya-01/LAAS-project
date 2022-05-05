@@ -4,6 +4,7 @@
 /* struct virement used between server and client */
 typedef struct {
   int numBeneficiaire;
+  int numEmetteur;
   int montant;
 } structVirement;
 
