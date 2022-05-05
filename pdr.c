@@ -25,16 +25,17 @@ int main (int argc, char *argv[]) {
 
   // GET SHARED MEMORY 
   int shm_id = sshmget(DATA_KEY,NBR_CLIENTS * sizeof(int), 0);
-  // pointeur vers livre de compte
-  int* ptrLDC = sshmat(shm_id); 
   // semaphore
   int sem_id = sem_get(SEM_KEY, 1); 
-  
-  printf("Ancien solde : %d €\n",ptrLDC[numeroDeCompte]);
 
   printf("Opération en cours...\n");
 
   sem_down0(sem_id);
+
+  // pointeur vers livre de compte
+  int* ptrLDC = sshmat(shm_id); 
+
+  printf("Ancien solde : %d €\n",ptrLDC[numeroDeCompte]);
 
   // ecrire mémoire partagée
   if(montant < 0){
@@ -45,10 +46,11 @@ int main (int argc, char *argv[]) {
 
   ptrLDC[numeroDeCompte] = ptrLDC[numeroDeCompte] + montant;
 
-  sem_up0(sem_id);
-  
   printf("Nouveau solde : %d €\n",ptrLDC[numeroDeCompte]);
   
   sshmdt(ptrLDC);
+
+  sem_up0(sem_id);
+  
   exit(EXIT_SUCCESS);
 }
