@@ -1,11 +1,7 @@
 CC=gcc
 CCFLAGS=-D_DEFAULT_SOURCE -D_XOPEN_SOURCE -D_BSD_SOURCE -std=c11 -pedantic -Wvla -Wall -Werror
 
-<<<<<<< HEAD
-all: maint pdr client
-=======
-all: maint pdr server
->>>>>>> 953101f29599c7b40be49e6b2f6baa39ae570101
+all: maint pdr client server
 
 maint : maint.o 
 	$(CC) $(CCFLAGS) -o maint maint.o utils_v1.o
@@ -34,7 +30,6 @@ server.o: server.c utils_v1.o
 utils_v1.o: utils_v1.c utils_v1.h
 	$(CC) $(CCFLAGS) -c utils_v1.c 
 
-
 clean : 
-	rm -f pdr maint *.o
+	rm -f pdr maint server client *.o
 	clear

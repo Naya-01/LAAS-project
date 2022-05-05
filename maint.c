@@ -17,7 +17,7 @@
 int main(int argc, char const *argv[])
 {
 
-	if(argc!=3){
+	if(argc!=2){
 		perror("Nombre de parametre invalide !");
 		exit(EXIT_FAILURE);
 	}
@@ -43,6 +43,7 @@ int main(int argc, char const *argv[])
 
 		if(argc!=3){
 			perror("Nombre de parametre invalide !");
+			exit(EXIT_FAILURE);
 		}
 
 		int opt = atoi(argv[2]);
