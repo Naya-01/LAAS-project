@@ -13,7 +13,6 @@
 
 int delay = 0;
 int size_vR = 0;
-structVirement virementsRecurrent[100];
 int port;
 int numeroCompte;
 char *ip;
@@ -75,6 +74,7 @@ void minuterieHandler()
 void virementRecurrentHandler()
 {
     sclose(pipefd[1]);
+    structVirement virementsRecurrent[100];
     while (!end)
     {
         structVirement virement;
@@ -83,15 +83,15 @@ void virementRecurrentHandler()
         if (virement.numBeneficiaire == -1)
         {
             // Effectuer les virements récurrent
-            int sockfd = initSocketClient(ip, port);
             for (size_t i = 0; i < size_vR; i++)
             {
+                int sockfd = initSocketClient(ip, port);
                 swrite(sockfd, &virementsRecurrent[i], sizeof(virement));
 
                 int solde;
                 sread(sockfd, &solde, sizeof(int));
+                sclose(sockfd);
             }
-            sclose(sockfd);
         }
         else if (virement.numBeneficiaire == -2) // Fin des virements récurrents
         {

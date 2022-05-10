@@ -21,10 +21,9 @@
 volatile sig_atomic_t end = 0;
 int sockfd;
 
-void endServerHandler(int sig)
-{
-    char *text = "Fin du serveur\n";
-    write(1, text, strlen(text));
+void endServerHandler(int sig){
+    char* text = "Fin du serveur\n";
+    write(1,text,strlen(text));
     exit(EXIT_SUCCESS);
 }
 
@@ -64,8 +63,7 @@ int main(int argc, char const *argv[])
     {
         /* client trt */
         int newsockfd = saccept(sockfd);
-        if (newsockfd == -1)
-        {
+        if(newsockfd==-1){
             break;
         }
 
@@ -75,25 +73,23 @@ int main(int argc, char const *argv[])
         structVirement virement;
         sread(newsockfd, &virement, sizeof(virement));
 
-        // Sémaphore, on bloque
-        sem_down0(sem_id);
-
         // pointeur vers livre de compte
         int *ptrLDC = sshmat(shm_id);
 
-        ptrLDC[virement.numBeneficiaire] += virement.montant;
-        ptrLDC[virement.numEmetteur] -= virement.montant;
+        //Sémaphore, on bloque 
+        sem_down0(sem_id);
+
+        ptrLDC[virement.numBeneficiaire]+=virement.montant;
+        ptrLDC[virement.numEmetteur]-=virement.montant;
 
         swrite(newsockfd, &ptrLDC[virement.numEmetteur], sizeof(int));
-        sshmdt(ptrLDC);
-
         sem_up0(sem_id);
-        
+        sshmdt(ptrLDC);
         sclose(newsockfd);
     }
 
-    char *text = "Fin du serveur\n";
-    write(1, text, strlen(text));
+    char* text = "Fin du serveur\n";
+    write(1,text,strlen(text));
     sclose(sockfd);
     exit(EXIT_SUCCESS);
 }
