@@ -29,7 +29,6 @@ void endServerHandler(int sig){
 
 int initSocketServer(int port)
 {
-    // TODO à compléter
     int sockfdTemp = ssocket();
     sbind(port, sockfdTemp);
     slisten(sockfdTemp, BACKLOG);

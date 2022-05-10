@@ -17,7 +17,7 @@
 int main(int argc, char const *argv[])
 {
 
-	if(argc!=2){
+	if(argc<2){
 		perror("Nombre de parametre invalide !");
 		exit(EXIT_FAILURE);
 	}

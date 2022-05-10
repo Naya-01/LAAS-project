@@ -51,6 +51,7 @@ void minuterieHandler()
     char* text = "Fin de la minuterie..\n";
     write(1,text,strlen(text));
     sclose(pipefd[1]);
+    exit(EXIT_SUCCESS);
 }
 
 void virementRecurrentHandler()
@@ -123,6 +124,7 @@ int main(int argc, char **argv)
         readLimitedLine(ligne, 256);
         if (ligne[0] == '+')
         {
+            printf("Virement en cours..\n");
             char delim[] = " ";
             char *ptr = strtok(ligne, delim); // option
             ptr = strtok(NULL, delim);        // numCompteBeneficiaire
