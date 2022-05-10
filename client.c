@@ -28,7 +28,8 @@ int initSocketClient(char *ServerIP, int Serverport)
 }
 
 void endChild(){
-    printf("Fin de la minuterie..\n");
+    char* text = "Fin de la minuterie..\n";
+    write(1,text,strlen(text));
     exit(EXIT_SUCCESS);
 }
 
