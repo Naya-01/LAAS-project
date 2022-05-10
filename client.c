@@ -16,8 +16,8 @@ int size_vR = 0;
 structVirement virementsRecurrent[100];
 int port;
 int numeroCompte;
-char* ip;
-int pipefd[2]; 
+char *ip;
+int pipefd[2];
 bool end = 0;
 
 int initSocketClient(char *ServerIP, int Serverport)
@@ -27,7 +27,24 @@ int initSocketClient(char *ServerIP, int Serverport)
     return sockfd;
 }
 
-void endChild(){
+structVirement getVirement(char *ligne)
+{
+    char delim[] = " ";
+    char *ptr = strtok(ligne, delim); // option (qu'on va pas enregistrer)
+    ptr = strtok(NULL, delim);        // numCompteBeneficiaire
+    int numBeneficiaire = atoi(ptr); // on enregistre le num beneficiaire
+    ptr = strtok(NULL, delim); // montant
+    int montant = atoi(ptr); // on enregistre le montant
+
+    structVirement virement;
+    virement.montant = montant;
+    virement.numBeneficiaire = numBeneficiaire;
+    virement.numEmetteur = numeroCompte;
+    return virement;
+}
+
+void endChild()
+{
     end = 1;
 }
 
@@ -36,7 +53,7 @@ void minuterieHandler()
     sigset_t set;
     ssigemptyset(&set);
     sigaddset(&set, SIGUSR1);
-    ssigaction(SIGUSR1,endChild);
+    ssigaction(SIGUSR1, endChild);
     ssigprocmask(SIG_UNBLOCK, &set, NULL);
     sclose(pipefd[0]);
     while (!end)
@@ -44,12 +61,13 @@ void minuterieHandler()
         sleep(delay);
         structVirement virement;
         virement.montant = 0;
+        // -1 pour dire aux virements récurrent qu'on est un heartbeat pour le lancement des virements récurrents
         virement.numBeneficiaire = -1;
         virement.numEmetteur = -1;
         swrite(pipefd[1], &virement, sizeof(virement));
     }
-    char* text = "Fin de la minuterie..\n";
-    write(1,text,strlen(text));
+    char *text = "Fin de la minuterie..\n";
+    write(1, text, strlen(text));
     sclose(pipefd[1]);
     exit(EXIT_SUCCESS);
 }
@@ -64,7 +82,7 @@ void virementRecurrentHandler()
 
         if (virement.numBeneficiaire == -1)
         {
-            // Envoyer les virements
+            // Effectuer les virements récurrent
             int sockfd = initSocketClient(ip, port);
             for (size_t i = 0; i < size_vR; i++)
             {
@@ -74,10 +92,12 @@ void virementRecurrentHandler()
                 sread(sockfd, &solde, sizeof(int));
             }
             sclose(sockfd);
-        }else if(virement.numBeneficiaire == -2){
-            end = 1;
-        }else
+        }
+        else if (virement.numBeneficiaire == -2) // Fin des virements récurrents
         {
+            end = 1;
+        }
+        else{
             // Ajouter le virement aux récurrents
             virementsRecurrent[size_vR] = virement;
             size_vR++;
@@ -97,20 +117,21 @@ int main(int argc, char **argv)
         exit(EXIT_FAILURE);
     }
 
+    // Récupération des données
     ip = argv[1];
     port = atoi(argv[2]);
     numeroCompte = atoi(argv[3]);
     delay = atoi(argv[4]);
 
-    spipe(pipefd);
+    spipe(pipefd); // Création du pipe
 
     sigset_t set;
     ssigemptyset(&set);
-    sigaddset(&set, SIGUSR1);
+    sigaddset(&set, SIGUSR1); // Bloquer le SIGUSR1 pour le gérer plus tard dans l'enfant minuterie
     ssigprocmask(SIG_BLOCK, &set, NULL);
 
-    int pidMinuterie = fork_and_run0(&minuterieHandler);
-    fork_and_run0(&virementRecurrentHandler);
+    int pidMinuterie = fork_and_run0(&minuterieHandler); // Lancement de la minuterie
+    fork_and_run0(&virementRecurrentHandler); // Lancement des virements récurrents
 
     sclose(pipefd[0]);
 
@@ -125,17 +146,7 @@ int main(int argc, char **argv)
         if (ligne[0] == '+')
         {
             printf("Virement en cours..\n");
-            char delim[] = " ";
-            char *ptr = strtok(ligne, delim); // option
-            ptr = strtok(NULL, delim);        // numCompteBeneficiaire
-            int numBeneficiaire = atoi(ptr);
-            ptr = strtok(NULL, delim); // montant
-            int montant = atoi(ptr);
-
-            structVirement virement;
-            virement.montant = montant;
-            virement.numBeneficiaire = numBeneficiaire;
-            virement.numEmetteur = numeroCompte;
+            structVirement virement = getVirement(ligne);
 
             int sockfd = initSocketClient(ip, port);
             swrite(sockfd, &virement, sizeof(virement));
@@ -148,29 +159,18 @@ int main(int argc, char **argv)
         }
         else if (ligne[0] == '*')
         {
-            char delim[] = " ";
-            char *ptr = strtok(ligne, delim); // option
-            ptr = strtok(NULL, delim);        // numCompteBeneficiaire
-            int numBeneficiaire = atoi(ptr);
-            ptr = strtok(NULL, delim); // montant
-            int montant = atoi(ptr);
-
-            structVirement virement;
-            virement.montant = montant;
-            virement.numBeneficiaire = numBeneficiaire;
-            virement.numEmetteur = numeroCompte;
-
+            structVirement virement = getVirement(ligne);
             swrite(pipefd[1], &virement, sizeof(virement));
             printf("Le virement récurrent a bien été ajouté !\n");
         }
         else if (ligne[0] == 'q')
         {
             printf("Fin du programme\n");
-            skill(pidMinuterie,SIGUSR1);
+            skill(pidMinuterie, SIGUSR1); // sigusr1 pour fin de la minuterie
             structVirement virement;
             virement.montant = 0;
-            virement.numBeneficiaire = -2;
-            virement.numEmetteur = -2;
+            virement.numBeneficiaire = -2; // - 2 pour fin des virements récurrents
+            virement.numEmetteur = numeroCompte;
             swrite(pipefd[1], &virement, sizeof(virement));
             end = 1;
         }
@@ -178,11 +178,12 @@ int main(int argc, char **argv)
         {
             printf("Commande non reconnue !\n");
         }
-        if(end!=1){
+        if (end != 1)
+        {
             printf("Veuillez entrez votre commande : ");
         }
     }
-    
+
     sclose(pipefd[1]);
     exit(EXIT_SUCCESS);
 }
