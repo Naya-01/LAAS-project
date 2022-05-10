@@ -28,9 +28,7 @@ int initSocketClient(char *ServerIP, int Serverport)
 }
 
 void endChild(){
-    char* text = "Fin de la minuterie..\n";
-    write(1,text,strlen(text));
-    exit(EXIT_SUCCESS);
+    end = 1;
 }
 
 void minuterieHandler()
@@ -50,6 +48,8 @@ void minuterieHandler()
         virement.numEmetteur = -1;
         swrite(pipefd[1], &virement, sizeof(virement));
     }
+    char* text = "Fin de la minuterie..\n";
+    write(1,text,strlen(text));
     sclose(pipefd[1]);
 }
 
