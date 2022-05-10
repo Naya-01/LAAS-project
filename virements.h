@@ -2,7 +2,8 @@
 #define _VIREMENTS_H_
 
 /* struct virement used between server and client */
-typedef struct {
+typedef struct
+{
   int numBeneficiaire;
   int numEmetteur;
   int montant;
