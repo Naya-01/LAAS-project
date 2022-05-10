@@ -82,16 +82,14 @@ void virementRecurrentHandler()
 
         if (virement.numBeneficiaire == -1)
         {
+            int sockfd = initSocketClient(ip, port);
             // Effectuer les virements récurrent
-            for (size_t i = 0; i < size_vR; i++)
-            {
-                int sockfd = initSocketClient(ip, port);
-                swrite(sockfd, &virementsRecurrent[i], sizeof(virement));
-
-                int solde;
-                sread(sockfd, &solde, sizeof(int));
-                sclose(sockfd);
+            swrite(sockfd, &size_vR, sizeof(int)); // nbr virement envoyé au serveur
+            for (int i = 0; i < size_vR;i++){ // Envoi des virements au serveur
+                swrite(sockfd, &virementsRecurrent[i], sizeof(structVirement));
             }
+            
+            sclose(sockfd);
         }
         else if (virement.numBeneficiaire == -2) // Fin des virements récurrents
         {
@@ -145,12 +143,17 @@ int main(int argc, char **argv)
         readLimitedLine(ligne, 256);
         if (ligne[0] == '+')
         {
-            printf("Virement en cours..\n");
             structVirement virement = getVirement(ligne);
 
+            printf("Virement en cours..\n");
             int sockfd = initSocketClient(ip, port);
-            swrite(sockfd, &virement, sizeof(virement));
 
+            // Nombre de virements envoyé au serveur
+            int size = 1;
+            swrite(sockfd,&size,sizeof(int));
+            // Le virement envoyé au serveur
+            swrite(sockfd, &virement, sizeof(structVirement));
+            // Récupération du solde envoyé par le serveur
             int solde;
             sread(sockfd, &solde, sizeof(int));
             printf("Solde restant : %d\n", solde);
@@ -160,6 +163,7 @@ int main(int argc, char **argv)
         else if (ligne[0] == '*')
         {
             structVirement virement = getVirement(ligne);
+            // Envoie du virement à l'enfant chargé des virement récurrents
             swrite(pipefd[1], &virement, sizeof(virement));
             printf("Le virement récurrent a bien été ajouté !\n");
         }

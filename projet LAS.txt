@@ -51,12 +51,15 @@ Pas besoin de sémaphore d'écriture sur le pipe
 
 Le père présente à l’utilisateur final un prompt permettant d’exécuter trois types de
 commandes :
+
 1. Une commande “+ n2 somme” (où n2 et somme sont des entiers naturels) qui permet
 d’effectuer un virement d’un montant équivalent à somme entre le compte “num” du
 client et le compte “n2”. Le nouveau solde du compte émetteur (“num”) est affiché.
+
 2. Une commande “* n2 somme” (où n2 et somme sont des entiers naturels) qui
 transmet au fils un nouveau virement récurrent d’un montant équivalent à somme entre
 le compte “num” du client et le compte “n2”. Ce virement récurrent est émis toutes
 les “delay” secondes par le fils. Le nouveau solde du compte émetteur (“num”) n’est
 pas affiché.
+
 3. Une commande “q” qui déconnecte le client et libère les ressources du client.
