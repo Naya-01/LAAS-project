@@ -87,8 +87,8 @@ int main(int argc, char const *argv[])
             ptrLDC[virement.numEmetteur] -= virement.montant;
         }
         swrite(newsockfd, &ptrLDC[virement.numEmetteur], sizeof(int));
-        sshmdt(ptrLDC);
         sem_up0(sem_id);
+        sshmdt(ptrLDC);
         sclose(newsockfd);
     }
 
